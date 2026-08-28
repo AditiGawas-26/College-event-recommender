@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Event Compass — College Event Recommender</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <p class="eyebrow">{{ total_events }} events indexed</p>
+      <h1>Find your next event</h1>
+      <p class="subtitle">Type what you're into — a skill, a hobby, a vibe — and get matched against every club, fest, and competition on campus.</p>
+    </header>
+
+    <form class="search-form" method="post">
+      <div class="search-row">
+        <input type="text" name="interests" placeholder="e.g. AI, coding, pitching, dance"
+               value="{{ user_input or '' }}" autofocus autocomplete="off">
+        <button type="submit" class="submit">Find events</button>
+      </div>
+      <div class="chips" role="group" aria-label="Filter by category">
+        <button type="submit" name="category" value="All"
+                class="chip {{ 'active' if selected_category in ('All', None, '') else '' }}">All</button>
+        {% for cat in categories %}
+          <button type="submit" name="category" value="{{ cat }}"
+                  class="chip {{ 'active' if selected_category == cat else '' }}">{{ cat }}</button>
+        {% endfor %}
+      </div>
+    </form>
+
+    {% if submitted %}
+      {% if recommendations %}
+        <p class="results-meta"><strong>{{ recommendations|length }}</strong> match{{ 'es' if recommendations|length != 1 else '' }} for "{{ user_input }}"{% if selected_category and selected_category != 'All' %} in <strong>{{ selected_category }}</strong>{% endif %}</p>
+        <div class="results-grid">
+          {% for rec in recommendations %}
+            <div class="event-card">
+              <div class="event-top">
+                <span class="category-dot" style="background: var(--c-{{ rec.category|lower|replace(' ', '-') }}, var(--accent));"></span>
+                <span class="category-label">{{ rec.category }}</span>
+              </div>
+              <p class="event-title">{{ rec.name }}</p>
+              <div class="tag-pills">
+                {% for tag in rec.tags[:4] %}
+                  <span class="tag-pill">{{ tag }}</span>
+                {% endfor %}
+              </div>
+              <div class="match-row">
+                <div class="match-bar"><div class="match-fill" style="width: {{ rec.strength }}%;"></div></div>
+                <span class="match-pct">{{ rec.strength }}%</span>
+              </div>
+              <p class="event-reason">{{ rec.reason }}</p>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <strong>No events matched.</strong>
+          try broader keywords, or clear the category filter.
+        </div>
+      {% endif %}
+    {% endif %}
+
+    <footer class="hint">Tip: comma-separate a few interests for sharper matches — e.g. "coding, pitching, teamwork".</footer>
+  </div>
+</body>
+</html>
